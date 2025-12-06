@@ -54,7 +54,7 @@ const BlacklistPage = observer(() => {
         <div className="w-20" />
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-4xl mx-auto w-full">
+      <main className="flex-1 px-3 sm:px-4 py-4 sm:py-6 max-w-4xl mx-auto w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mb-2">Запрещённые категории</h1>
           <p className="text-sm text-white/70">
@@ -64,8 +64,8 @@ const BlacklistPage = observer(() => {
         </div>
 
         {/* Stats Card */}
-        <div className="mb-6 p-4 rounded-md bg-[#333333] border border-[#555555] flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="mb-6 p-3 sm:p-4 rounded-md bg-[#333333] border border-[#555555] flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 rounded-md bg-[#FFDD2D]/10 flex items-center justify-center">
               <FiShield className="w-6 h-6 text-[#FFDD2D]" />
             </div>
@@ -74,8 +74,8 @@ const BlacklistPage = observer(() => {
               <div className="text-xl font-bold text-white">{availableCategories.length}</div>
             </div>
           </div>
-          <div className="w-px h-12 bg-[#555555]" />
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:block w-px h-12 bg-[#555555]" />
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-12 h-12 rounded-md bg-[#FFDD2D]/20 flex items-center justify-center">
               <FiCheck className="w-6 h-6 text-[#FFDD2D]" />
             </div>
@@ -88,7 +88,7 @@ const BlacklistPage = observer(() => {
 
         {/* Categories Grid */}
         <div className="mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 p-1">
             {availableCategories.map((cat) => {
               const active = selected.includes(cat);
               return (
@@ -116,7 +116,7 @@ const BlacklistPage = observer(() => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <button
             onClick={() => setSelected([])}
             className="flex-1 px-4 py-3 rounded-md bg-[#333333] text-white font-semibold hover:bg-[#444444] border border-[#555555] transition-colors flex items-center justify-center gap-2"

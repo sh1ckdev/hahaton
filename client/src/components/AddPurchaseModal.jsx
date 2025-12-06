@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
 import api from "../api/client";
 import { PURCHASE_CATEGORIES } from "../utils/categories.js";
+import { money } from "../utils/formatMoney.js";
 
 const CATEGORIES = PURCHASE_CATEGORIES;
 
@@ -52,7 +53,7 @@ const AddPurchaseModal = observer(({ onClose }) => {
         }
       } else if (purchase.blockedByCategory) {
         // Если заблокирована - показываем сообщение
-        setAdvice(`Эта покупка заблокирована, так как категория "${purchase.category}" находится в вашем blacklist.`);
+        setAdvice(`Я определил, что покупка "${purchase.title}" за ${money(purchase.price)} относится к категории "${purchase.category || purchase.aiCategory}", которая находится в вашем blacklist.`);
         setShowAdvice(true);
       } else {
         // Если сразу куплена или отменена
@@ -99,8 +100,8 @@ const AddPurchaseModal = observer(({ onClose }) => {
   // Показываем модалку с советом ассистента
   if (showAdvice && createdPurchase) {
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div className="bg-[#333333] border border-[#555555] p-5 rounded-lg w-96 max-w-[90vw] space-y-4">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-[#333333] border border-[#555555] p-4 sm:p-5 rounded-lg w-full sm:w-96 max-w-[90vw] max-h-[90vh] overflow-y-auto space-y-3 sm:space-y-4">
           <h2 className="font-semibold text-lg text-white">Совет ассистента</h2>
           
           <div className="bg-[#1A1A1A] border border-[#555555] rounded-lg p-4">
@@ -144,8 +145,8 @@ const AddPurchaseModal = observer(({ onClose }) => {
   }
 
   return(
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#333333] border border-[#555555] p-5 rounded-lg w-80 space-y-3">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#333333] border border-[#555555] p-4 sm:p-5 rounded-lg w-full sm:w-80 max-w-[90vw] max-h-[90vh] overflow-y-auto space-y-3">
         <h2 className="font-semibold text-lg text-white">Новая покупка</h2>
         <input 
           className="bg-[#1A1A1A] border border-[#555555] w-full px-3 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]" 

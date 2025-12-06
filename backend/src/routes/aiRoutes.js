@@ -20,6 +20,9 @@ const router = Router();
  *                 type: string
  *               description:
  *                 type: string
+ *               userId:
+ *                 type: string
+ *                 description: Опционально. Если указан, будут учтены запрещенные категории пользователя
  *     responses:
  *       200:
  *         description: Категория покупки

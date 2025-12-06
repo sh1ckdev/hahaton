@@ -6,7 +6,8 @@ import {
   setCooldownRulesController,
   updateBlacklist,
   syncBankData,
-  updateNotificationSettings
+  updateNotificationSettings,
+  getTelegramBotInfo
 } from "../controllers/userController.js";
 
 const router = Router();
@@ -232,6 +233,18 @@ router.post("/:userId/bank-sync", syncBankData);
  */
 router.post("/:userId/notification-settings", updateNotificationSettings);
 
-
+/**
+ * @swagger
+ * /api/users/telegram-bot-info:
+ *   get:
+ *     summary: Получить информацию о Telegram боте
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Информация о боте
+ *       503:
+ *         description: Бот не настроен
+ */
+router.get("/telegram-bot-info", getTelegramBotInfo);
 
 export default router;

@@ -9,6 +9,7 @@ import BlacklistPage from "./pages/BlacklistPage.jsx";
 import NotificationSettingsPage from "./pages/NotificationSettingsPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import GoalsPage from "./pages/GoalsPage.jsx";
+import WishlistPage from "./pages/WishlistPage.jsx";
 import PaymentConfirmationModal from "./components/PaymentConfirmationModal.jsx";
 import FinancialProfileModal from "./components/FinancialProfileModal.jsx";
 
@@ -76,6 +77,16 @@ const App = observer(() => {
             element={
               userStore.isAuthenticated ? (
                 <GoalsPage />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/wishlist"
+            element={
+              userStore.isAuthenticated ? (
+                <WishlistPage />
               ) : (
                 <Navigate to="/login" replace />
               )

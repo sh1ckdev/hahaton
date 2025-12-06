@@ -8,8 +8,18 @@ import User from "../models/User.js";
 
 export const classifyCategoryController = async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const category = await classifyCategory(title, description);
+    const { title, description, userId } = req.body;
+    
+    // Если передан userId, получаем запрещенные категории пользователя
+    let excludeCategories = [];
+    if (userId) {
+      const user = await getUserProfile(userId);
+      if (user) {
+        excludeCategories = user.notificationSettings?.excludeCategories || [];
+      }
+    }
+    
+    const category = await classifyCategory(title, description, excludeCategories);
     res.json({ category });
   } catch (e) {
     console.error(e);

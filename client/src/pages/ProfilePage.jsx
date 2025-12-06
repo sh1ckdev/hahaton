@@ -1,12 +1,16 @@
 import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiUser, FiDollarSign, FiTarget, FiTrendingUp, FiShoppingCart, FiCheckCircle, FiXCircle, FiClock } from "react-icons/fi";
+import { FiArrowLeft, FiUser, FiDollarSign, FiTarget, FiTrendingUp, FiShoppingCart, FiCheckCircle, FiXCircle, FiClock, FiEdit2, FiCheck, FiX } from "react-icons/fi";
+import api from "../api/client";
 
 const ProfilePage = observer(() => {
   const { userStore, purchaseStore } = useStores();
   const nav = useNavigate();
+  const [editingSavings, setEditingSavings] = useState(false);
+  const [savingsValue, setSavingsValue] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!userStore.user) {
@@ -23,6 +27,38 @@ const ProfilePage = observer(() => {
   const purchased = allPurchases.filter(p => p.status === "purchased");
   const canceled = allPurchases.filter(p => p.status === "canceled");
   const planned = allPurchases.filter(p => p.status === "planned");
+
+  const handleEditSavings = () => {
+    setSavingsValue(user.currentSavings?.toString() || "0");
+    setEditingSavings(true);
+  };
+
+  const handleSaveSavings = async () => {
+    const numValue = Number(savingsValue.replace(/\s/g, ""));
+    if (isNaN(numValue) || numValue < 0) {
+      alert("Пожалуйста, введите корректную сумму");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post(`/users/${userStore.userId}/bank-sync`, {
+        currentSavings: numValue
+      });
+      await userStore.loadProfile();
+      setEditingSavings(false);
+    } catch (error) {
+      console.error("Ошибка обновления накоплений:", error);
+      alert("Ошибка при сохранении накоплений");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSavings(false);
+    setSavingsValue("");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0D0D0D]">
@@ -41,7 +77,7 @@ const ProfilePage = observer(() => {
         <div className="w-20" />
       </header>
 
-      <main className="flex-1 px-4 py-6 space-y-6">
+      <main className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Финансовый профайл */}
         <section>
           <div className="flex items-center gap-2 mb-3">
@@ -68,22 +104,63 @@ const ProfilePage = observer(() => {
                 <FiDollarSign className="w-5 h-5 text-[#FFDD2D]" />
                 <span className="text-white/70">Текущие накопления:</span>
               </div>
-              <span className="font-semibold text-white">{user.currentSavings?.toLocaleString() || 0} ₽</span>
+              {editingSavings ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={savingsValue}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setSavingsValue(value);
+                    }}
+                    onBlur={(e) => {
+                      const num = Number(e.target.value.replace(/\s/g, ""));
+                      if (!isNaN(num)) {
+                        setSavingsValue(num.toLocaleString("ru-RU"));
+                      }
+                    }}
+                    onFocus={(e) => {
+                      const num = Number(e.target.value.replace(/\s/g, ""));
+                      if (!isNaN(num)) {
+                        setSavingsValue(num.toString());
+                      }
+                    }}
+                    className="w-32 bg-[#333333] border border-[#555555] px-2 py-1 rounded text-white text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-[#FFDD2D]"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveSavings}
+                    disabled={loading}
+                    className="p-1.5 rounded bg-green-500/20 hover:bg-green-500/30 text-green-400 transition-colors disabled:opacity-50"
+                    title="Сохранить"
+                  >
+                    <FiCheck className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={loading}
+                    className="p-1.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors disabled:opacity-50"
+                    title="Отмена"
+                  >
+                    <FiX className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white">{user.currentSavings?.toLocaleString() || 0} ₽</span>
+                  <button
+                    onClick={handleEditSavings}
+                    className="p-1.5 rounded hover:bg-[#444444] text-white/60 hover:text-[#FFDD2D] transition-colors"
+                    title="Редактировать накопления"
+                  >
+                    <FiEdit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Финансовые цели из анкеты */}
-        {user.extendedProfile?.financialGoals && (
-          <section>
-            <h3 className="text-lg font-semibold mb-3 text-white">Мои финансовые цели</h3>
-            <div className="bg-[#333333] border border-[#555555] rounded-md p-4">
-              <p className="text-white/90 whitespace-pre-wrap">
-                {user.extendedProfile.financialGoals}
-              </p>
-            </div>
-          </section>
-        )}
 
         {/* Статистика покупок */}
         <section>
@@ -91,7 +168,7 @@ const ProfilePage = observer(() => {
             <FiShoppingCart className="w-5 h-5 text-[#FFDD2D]" />
             <h3 className="text-lg font-semibold text-white">Статистика покупок</h3>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
             <div className="bg-[#333333] border border-[#555555] rounded-md p-4 text-center">
               <div className="w-10 h-10 rounded-md bg-[#FFDD2D]/10 flex items-center justify-center mx-auto mb-2">
                 <FiClock className="w-5 h-5 text-[#FFDD2D]" />

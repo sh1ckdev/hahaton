@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
 import { useState } from "react";
+import { FiX, FiPlus } from "react-icons/fi";
 import api from "../api/client";
 
 // Категории для анкеты
@@ -24,7 +25,7 @@ const SPENDING_CATEGORIES = [
 ];
 
 const ExtendedProfileModal = observer(({ onComplete }) => {
-  const { userStore } = useStores();
+  const { userStore, goalStore } = useStores();
   
   // Шаг 1: На что тратит больше всего
   const [topSpending, setTopSpending] = useState([]);
@@ -33,7 +34,7 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
   const [impulsiveCategories, setImpulsiveCategories] = useState([]);
   
   // Шаг 3: Финансовые цели
-  const [financialGoals, setFinancialGoals] = useState("");
+  const [financialGoals, setFinancialGoals] = useState([]); // Массив целей с полями
   
   // Шаг 4: Категории, мешающие целям
   const [blockingCategories, setBlockingCategories] = useState([]);
@@ -79,18 +80,36 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
 
 На что тратит больше всего: ${topSpending.join(", ")}
 Импульсивные категории: ${impulsiveCategories.join(", ")}
-Финансовые цели: ${financialGoals || "не указаны"}
+Финансовые цели: ${financialGoals.length > 0 ? financialGoals.map(g => `${g.title} (${g.price}₽, приоритет ${g.priority})`).join(", ") : "не указаны"}
 Категории, мешающие целям: ${blockingCategories.join(", ")}
 Процент отложений: ${savingsPercentage}%
 Есть долги: ${hasDebts ? "да" : "нет"}
       `.trim();
 
-      // Сохраняем данные анкеты в профиль пользователя
+      // Создаем финансовые цели в системе целей
+      if (financialGoals && financialGoals.length > 0) {
+        for (const goal of financialGoals) {
+          if (goal.title && goal.title.trim()) {
+            try {
+              await goalStore.createGoal(userStore.userId, {
+                title: goal.title.trim(),
+                price: Number(goal.price) || 0,
+                priority: Number(goal.priority) || 5,
+                description: ""
+              });
+            } catch (error) {
+              console.error(`Ошибка при создании цели "${goal.title}":`, error);
+            }
+          }
+        }
+      }
+
+      // Сохраняем данные анкеты в профиль пользователя (БЕЗ financialGoals, так как они уже в целях)
       await api.post(`/users/${userStore.userId}/profile`, {
         extendedProfile: {
           topSpendingCategories: topSpending,
           impulsiveCategories: impulsiveCategories,
-          financialGoals: financialGoals,
+          financialGoals: "", // Очищаем, так как цели теперь в системе целей
           blockingCategories: blockingCategories,
           savingsPercentage: savingsPercentage,
           hasDebts: hasDebts
@@ -110,8 +129,9 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
         });
       }
 
-      // Обновляем профиль
+      // Обновляем профиль и загружаем цели
       await userStore.loadProfile();
+      await goalStore.loadForUser(userStore.userId);
       
       // Завершаем анкету
       if (onComplete) {
@@ -188,14 +208,80 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
               Есть ли у тебя финансовые цели?
             </h3>
             <p className="text-sm text-white/70 mb-4">
-              Например: "Купить машину через год", "Накопить на отпуск"
+              Добавь свои финансовые цели с приоритетом и стоимостью
             </p>
-            <textarea
-              value={financialGoals}
-              onChange={(e) => setFinancialGoals(e.target.value)}
-              placeholder="Опиши свои финансовые цели..."
-              className="w-full bg-[#1A1A1A] border border-[#555555] px-4 py-3 rounded-lg text-white min-h-[100px] focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
-            />
+            
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+              {financialGoals.map((goal, index) => (
+                <div key={index} className="bg-[#1A1A1A] border border-[#555555] rounded-lg p-4 space-y-3">
+                  <div>
+                    <label className="block text-xs text-white/70 mb-1">Название цели</label>
+                    <input
+                      type="text"
+                      value={goal.title || ""}
+                      onChange={(e) => {
+                        const newGoals = [...financialGoals];
+                        newGoals[index] = { ...newGoals[index], title: e.target.value };
+                        setFinancialGoals(newGoals);
+                      }}
+                      placeholder="Например: Квартира"
+                      className="w-full bg-[#333333] border border-[#555555] px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Стоимость (₽)</label>
+                      <input
+                        type="number"
+                        value={goal.price || ""}
+                        onChange={(e) => {
+                          const newGoals = [...financialGoals];
+                          newGoals[index] = { ...newGoals[index], price: e.target.value };
+                          setFinancialGoals(newGoals);
+                        }}
+                        placeholder="5000000"
+                        min="0"
+                        className="w-full bg-[#333333] border border-[#555555] px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">Приоритет (1-10)</label>
+                      <input
+                        type="number"
+                        value={goal.priority || 5}
+                        onChange={(e) => {
+                          const newGoals = [...financialGoals];
+                          newGoals[index] = { ...newGoals[index], priority: Math.min(10, Math.max(1, parseInt(e.target.value) || 5)) };
+                          setFinancialGoals(newGoals);
+                        }}
+                        min="1"
+                        max="10"
+                        className="w-full bg-[#333333] border border-[#555555] px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setFinancialGoals(financialGoals.filter((_, i) => i !== index));
+                    }}
+                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <FiX className="w-3 h-3" />
+                    Удалить цель
+                  </button>
+                </div>
+              ))}
+              
+              <button
+                onClick={() => {
+                  setFinancialGoals([...financialGoals, { title: "", price: "", priority: 5 }]);
+                }}
+                className="w-full py-3 border-2 border-dashed border-[#555555] rounded-lg text-white/70 hover:text-white hover:border-[#FFDD2D] transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                <FiPlus className="w-4 h-4" />
+                Добавить цель
+              </button>
+            </div>
           </div>
         );
 

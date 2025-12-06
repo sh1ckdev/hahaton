@@ -5,7 +5,8 @@ import {
   cancelPurchaseController,
   markBoughtController,
   checkPurchaseAllowedController,
-  updateNotificationController
+  updateNotificationController,
+  updatePurchaseController
 } from "../controllers/purchaseController.js";
 
 const router = Router();
@@ -139,5 +140,42 @@ router.get("/check-allowed/:purchaseId", checkPurchaseAllowedController);
  *         description: Обновленное уведомление
  */
 router.patch("/notification/:id", updateNotificationController);
+
+/**
+ * @swagger
+ * /api/purchases/{purchaseId}:
+ *   patch:
+ *     summary: Обновить покупку
+ *     tags: [Purchases]
+ *     parameters:
+ *       - in: path
+ *         name: purchaseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               category:
+ *                 type: string
+ *               url:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               useAiCategory:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Обновленная покупка
+ */
+router.patch("/:purchaseId", updatePurchaseController);
 
 export default router;

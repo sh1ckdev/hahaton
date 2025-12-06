@@ -9,6 +9,7 @@ import purchaseRoutes from "./routes/purchaseRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import goalRoutes from "./routes/goalRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/purchases", purchaseRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/goals", goalRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // обработка ошибок
 app.use((err, req, res, next) => {

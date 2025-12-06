@@ -1,7 +1,7 @@
 import Purchase from "../models/Purchase.js";
 import User from "../models/User.js";
 import { classifyCategory } from "./aiService.js";
-import { getUserCooldownRules } from "./userService.js";
+import { getUserCooldownRules, getUserProfile } from "./userService.js";
 import { getCooldownDaysForAmount, calcComfortableFrom, isDateInPast } from "../utils/cooldownCalc.js";
 import { checkBlacklistByText } from "../utils/blacklist.js";
 import { addDays, now } from "../utils/date.js";
@@ -41,7 +41,9 @@ export const createPurchase = async (user, payload) => {
   }
 
   if (useAiCategory || !category) {
-    aiCategory = await classifyCategory(finalTitle, description || url || "");
+    // Получаем список запрещенных категорий пользователя
+    const excludeCategories = user.notificationSettings?.excludeCategories || [];
+    aiCategory = await classifyCategory(finalTitle, description || url || "", excludeCategories);
     finalCategory = aiCategory;
   }
 
@@ -50,10 +52,20 @@ export const createPurchase = async (user, payload) => {
   const cooldownUntil = cooldownDays ? addDays(now(), cooldownDays) : null;
   const comfortableFrom = calcComfortableFrom(user, price);
 
-  const blacklistMatched = checkBlacklistByText(finalCategory, title);
-  const blockedByCategory = !!blacklistMatched;
+  // Проверяем blacklist: сначала дефолтный, потом пользовательский
+  const defaultBlacklistMatched = checkBlacklistByText(finalCategory, title);
+  const userExcludeCategories = user.notificationSettings?.excludeCategories || [];
+  const userBlacklistMatched = userExcludeCategories.some(cat => 
+    finalCategory && finalCategory.toLowerCase().includes(cat.toLowerCase())
+  );
+  
+  // blacklistMatched должен быть булевым
+  const blacklistMatched = !!defaultBlacklistMatched || userBlacklistMatched;
+  const blockedByCategory = blacklistMatched;
 
-  const status = blockedByCategory ? "canceled" : "planned";
+  // Оставляем статус "planned" даже для заблокированных, чтобы модальное окно могло показаться
+  // Пользователь все равно увидит предупреждение и сможет решить
+  const status = "planned";
 
   const purchase = await Purchase.create({
     userId: user.userId,
@@ -105,6 +117,46 @@ export const isPurchaseAllowedNow = (purchase) => {
 
 export const updateLastNotified = async (purchase) => {
   purchase.lastNotifiedAt = now();
+  await purchase.save();
+  return purchase;
+};
+
+export const updatePurchase = async (id, payload) => {
+  const purchase = await Purchase.findById(id);
+  if (!purchase) return null;
+
+  const { title, price, category, url, description, useAiCategory } = payload;
+
+  if (title !== undefined) purchase.title = title;
+  if (price !== undefined) purchase.price = price;
+  if (url !== undefined) purchase.url = url;
+  if (description !== undefined) purchase.description = description;
+
+  // Если категория изменилась или нужно переопределить через AI
+  if (category !== undefined || (useAiCategory && category === undefined)) {
+    if (useAiCategory || !category) {
+      const user = await getUserProfile(purchase.userId);
+      const excludeCategories = user?.notificationSettings?.excludeCategories || [];
+      const aiCategory = await classifyCategory(title || purchase.title, description || url || "", excludeCategories);
+      purchase.aiCategory = aiCategory;
+      purchase.category = aiCategory;
+    } else {
+      purchase.category = category;
+      purchase.aiCategory = null;
+    }
+  }
+
+  // Пересчитываем cooldown и comfortableFrom если изменилась цена
+  if (price !== undefined && price !== purchase.price) {
+    const user = await getUserProfile(purchase.userId);
+    if (user) {
+      const rules = await getUserCooldownRules(user.userId);
+      const cooldownDays = getCooldownDaysForAmount(rules, price);
+      purchase.cooldownUntil = cooldownDays ? addDays(now(), cooldownDays) : null;
+      purchase.comfortableFrom = calcComfortableFrom(user, price);
+    }
+  }
+
   await purchase.save();
   return purchase;
 };

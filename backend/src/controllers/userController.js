@@ -120,6 +120,7 @@ import {
       const { userId } = req.params;
       const {
         frequency,
+        customFrequencyMs,
         channels,
         excludeCategories,
         excludePurchaseIds,
@@ -130,6 +131,7 @@ import {
       const updatePayload = {};
 
       if (frequency) updatePayload["notificationSettings.frequency"] = frequency;
+      if (customFrequencyMs !== undefined) updatePayload["notificationSettings.customFrequencyMs"] = customFrequencyMs;
       if (channels) updatePayload["notificationSettings.channels"] = channels;
       if (excludeCategories) updatePayload["notificationSettings.excludeCategories"] = excludeCategories;
       if (excludePurchaseIds) updatePayload["notificationSettings.excludePurchaseIds"] = excludePurchaseIds;
@@ -139,7 +141,11 @@ import {
       }
       if (telegramSettings) {
         if (telegramSettings.enabled !== undefined) updatePayload["notificationSettings.telegramSettings.enabled"] = telegramSettings.enabled;
-        if (telegramSettings.chatId) updatePayload["notificationSettings.telegramSettings.chatId"] = telegramSettings.chatId;
+        // chatId обновляем только если он явно передан (не пустая строка)
+        // Это позволяет сохранить chatId, установленный через /start команду
+        if (telegramSettings.chatId !== undefined && telegramSettings.chatId !== "") {
+          updatePayload["notificationSettings.telegramSettings.chatId"] = telegramSettings.chatId;
+        }
       }
 
       const user = await User.findOneAndUpdate(
@@ -153,6 +159,26 @@ import {
       res.json(user);
     } catch (e) {
       console.error("updateNotificationSettings error:", e);
+      next(e);
+    }
+  };
+
+  export const getTelegramBotInfo = async (req, res, next) => {
+    try {
+      const { getBotInfo } = await import("../services/telegramBotService.js");
+      const botInfo = await getBotInfo();
+      
+      if (!botInfo) {
+        return res.status(503).json({ error: "Telegram bot not configured" });
+      }
+
+      res.json({
+        username: botInfo.username,
+        firstName: botInfo.first_name,
+        botLink: `https://t.me/${botInfo.username}`
+      });
+    } catch (e) {
+      console.error("getTelegramBotInfo error:", e);
       next(e);
     }
   };

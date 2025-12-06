@@ -21,7 +21,9 @@ export const generatePurchaseAdvice = async (userId, payment) => {
     const user = await User.findOne({ userId });
     const planned = await Purchase.find({ userId, status:"planned" });
 
-    const category = await classifyCategory(payment.description || "товар");
+    // Получаем список запрещенных категорий пользователя
+    const excludeCategories = user?.notificationSettings?.excludeCategories || [];
+    const category = await classifyCategory(payment.description || "товар", "", excludeCategories);
 
     // ближайшая хотелка
     const nextGoal = planned.sort((a,b)=> new Date(a.cooldownUntil) - new Date(b.cooldownUntil))[0];

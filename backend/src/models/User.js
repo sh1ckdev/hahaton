@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const notificationSettingsSchema = new mongoose.Schema(
   {
-    frequency: { type: String, enum: ["daily", "weekly", "monthly"], default: "weekly" },
+    frequency: { type: String, enum: ["daily", "weekly", "monthly", "custom"], default: "weekly" },
+    customFrequencyMs: { type: Number, default: null }, // Кастомное время в миллисекундах (для frequency="custom")
     channels: { type: [String], enum: ["ui", "email", "telegram"], default: ["ui"] },
     channel: { type: String, enum: ["ui", "email", "telegram"] }, // Старое поле для обратной совместимости
     excludeCategories: { type: [String], default: [] },

@@ -17,6 +17,7 @@ const localFallback = (text) => {
   text = text.toLowerCase();
 
   const categories = [
+    { patterns: [/казино|азарт|ставк|бет|деп.*кази|рулетк|покер|блэкджек|слот|игров.*автомат/], category: "азарт" },
     { patterns: [/playstation|xbox|steam|игра|game|nintendo/], category: "игры" },
     { patterns: [/телефон|смартфон|iphone|android/, /ноутбук|laptop|macbook/, /пк|компьютер|pc/], category: "техника" },
     { patterns: [/одежд|куртк|пальто|джинс|футболк|рубашк/], category: "одежда" },
@@ -150,11 +151,11 @@ export const generateBlacklist = async (contextText = "") => {
   }
 };
 
-export const classifyCategory = async (title = "", description = "") => {
+export const classifyCategory = async (title = "", description = "", excludeCategories = []) => {
   const text = `${title} ${description}`.trim();
   
-  // Проверяем кэш
-  const cacheKey = text.toLowerCase();
+  // Создаем ключ кэша с учетом запрещенных категорий
+  const cacheKey = `${text.toLowerCase()}_${excludeCategories.sort().join(',')}`;
   const cached = categoryCache.get(cacheKey);
   
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -170,12 +171,37 @@ export const classifyCategory = async (title = "", description = "") => {
   }
 
   try {
-    const prompt = `Определи категорию покупки: "${text}"
+    // Базовые категории (включая азартные игры)
+    const baseCategories = ["игры", "азарт", "казино", "техника", "одежда", "развлечения", "путешествия", "другое"];
     
-Доступные категории: игры, техника, одежда, развлечения, путешествия, другое
-Верни только одно слово из списка.`;
+    // Объединяем базовые категории с запрещенными категориями пользователя
+    const allCategories = [...new Set([...baseCategories, ...excludeCategories])];
+    
+    let prompt = `Определи категорию покупки по названию и описанию: "${text}"\n\n`;
+    
+    // Добавляем подсказки для распознавания азартных игр
+    prompt += `ВАЖНО: Распознавание азартных игр:\n`;
+    prompt += `- "казик", "казино", "деп в казино", "ставки", "бет", "рулетка", "покер", "слоты" → категория "азарт" или "казино"\n`;
+    prompt += `- "игры" относится к видеоиграм (PlayStation, Xbox, Steam и т.д.)\n\n`;
+    
+    if (excludeCategories.length > 0) {
+      prompt += `КРИТИЧЕСКИ ВАЖНО: У пользователя есть список запрещенных категорий, которые он контролирует:\n${excludeCategories.map(cat => `- "${cat}"`).join('\n')}\n\n`;
+      prompt += `ПРАВИЛА КЛАССИФИКАЦИИ:\n`;
+      prompt += `1. Если покупка относится к одной из запрещенных категорий (даже частично) - ОБЯЗАТЕЛЬНО верни ТОЧНОЕ название этой категории из списка выше.\n`;
+      prompt += `2. Например, если в запрещенных есть "пицца" или "фастфуд", а покупка - "пицца пепперони", верни "пицца" (если это точное совпадение) или соответствующую запрещенную категорию.\n`;
+      prompt += `3. Если покупка не относится к запрещенным категориям, выбери из базовых категорий.\n\n`;
+    }
+    
+    prompt += `Доступные категории для выбора:\n`;
+    if (excludeCategories.length > 0) {
+      prompt += `Запрещенные (приоритет): ${excludeCategories.join(', ')}\n`;
+      prompt += `Базовые: ${baseCategories.join(', ')}\n`;
+    } else {
+      prompt += `${allCategories.join(', ')}\n`;
+    }
+    prompt += `\nВерни ТОЛЬКО одно слово - название категории из списка выше, без дополнительных пояснений.`;
 
-    console.log(`📤 Requesting AI classification for: "${text.substring(0, 100)}..."`);
+    console.log(`📤 Requesting AI classification for: "${text.substring(0, 100)}..." ${excludeCategories.length > 0 ? `(with ${excludeCategories.length} excluded categories)` : ''}`);
 
     const completion = await callOpenRouterWithRetry(prompt);
     
@@ -185,9 +211,23 @@ export const classifyCategory = async (title = "", description = "") => {
       throw new Error("Empty response from AI");
     }
 
-    // Валидация
-    const allowed = ["игры", "техника", "одежда", "развлечения", "путешествия", "другое"];
-    let category = allowed.includes(out) ? out : localFallback(text);
+    // Валидация: проверяем сначала в запрещенных категориях, потом в базовых
+    let category;
+    const matchedExcluded = excludeCategories.find(cat => 
+      out.includes(cat.toLowerCase()) || cat.toLowerCase().includes(out)
+    );
+    
+    if (matchedExcluded) {
+      category = matchedExcluded;
+    } else if (allCategories.some(cat => cat.toLowerCase() === out)) {
+      category = out;
+    } else {
+      // Если не нашли точное совпадение, пробуем найти похожую категорию
+      const found = allCategories.find(cat => 
+        cat.toLowerCase().includes(out) || out.includes(cat.toLowerCase())
+      );
+      category = found || localFallback(text);
+    }
     
     // Сохраняем в кэш
     categoryCache.set(cacheKey, {
@@ -201,7 +241,7 @@ export const classifyCategory = async (title = "", description = "") => {
       categoryCache.delete(oldestKey);
     }
     
-    console.log(`✅ Category: "${text}" → ${category}`);
+    console.log(`✅ Category: "${text}" → ${category} ${excludeCategories.includes(category) ? '(запрещенная категория)' : ''}`);
     return category;
 
   } catch (err) {
@@ -219,14 +259,24 @@ export const classifyCategory = async (title = "", description = "") => {
 export const generatePurchaseConfirmationAdvice = async (user, purchase, goalsWithShift = []) => {
   if (!openRouterAvailable) {
     // Fallback без AI
-    let fallbackText = `Ты собираешься купить "${purchase.title}" за ${purchase.price}₽.`;
-    if (goalsWithShift.length > 0) {
-      fallbackText += `\n\nЕсли подтвердишь эту покупку, твои цели сдвинутся:`;
-      goalsWithShift.forEach(goal => {
-        fallbackText += `\n- "${goal.title}" отложится на ${goal.shiftDays} дней`;
-      });
+    const category = purchase.aiCategory || purchase.category || "";
+    let fallbackText = `СТОП! Пожалуйста, подумай дважды!\n\nТы собираешься купить "${purchase.title}" за ${purchase.price}₽`;
+    if (category) {
+      fallbackText += ` в категории "${category}"`;
     }
-    fallbackText += `\n\nПодтверди покупку или добавь в вишлист?`;
+    if (user.salary && user.salary > 0) {
+      const salaryPercentage = ((purchase.price / user.salary) * 100).toFixed(0);
+      fallbackText += `. Это составляет ${salaryPercentage}% от твоей месячной зарплаты - это ОЧЕНЬ МНОГО!`;
+    }
+    if (goalsWithShift.length > 0) {
+      fallbackText += `\n\n⚠️ ВНИМАНИЕ: Эта покупка отложит твои важные цели:`;
+      goalsWithShift.forEach(goal => {
+        fallbackText += `\n• "${goal.title}" отложится на ${goal.shiftDays} дней`;
+      });
+      fallbackText += `\n\nПожалуйста, добавь эту покупку в вишлист и подумай несколько дней. Это мудрое решение!`;
+    } else {
+      fallbackText += `\n\nЛучше добавь это в вишлист и обдумай покупку несколько дней.`;
+    }
     return fallbackText;
   }
 
@@ -259,31 +309,48 @@ export const generatePurchaseConfirmationAdvice = async (user, purchase, goalsWi
       context += ` Текущие накопления: ${user.currentSavings}₽.`;
     }
 
-    const prompt = `Ты финансовый ассистент, который помогает пользователям принимать разумные финансовые решения.
+    const prompt = `Ты финансовый ассистент-защитник, который УБЕДИТЕЛЬНО отговаривает от неразумных трат. Твоя задача - СДЕРЖАТЬ пользователя от импульсивной покупки.
 
 ${context}
 
-Задача: Сгенерируй дружелюбный, краткий (2-4 предложения) совет на русском языке. ОБЯЗАТЕЛЬНО упомяни категорию покупки, если она указана. Укажи точный процент от зарплаты, если он рассчитан. Спроси, действительно ли пользователь хочет подтвердить эту покупку прямо сейчас, или лучше добавить её в вишлист (отложить на потом). 
+ВАЖНО: Сгенерируй УМОЛЯЮЩИЙ, ЭМОЦИОНАЛЬНЫЙ и УБЕДИТЕЛЬНЫЙ совет на русском языке (3-5 предложений), который заставит пользователя ПЕРЕДУМАТЬ. Используй следующие техники:
 
-Если есть информация о сдвиге финансовых целей - обязательно упомяни конкретные цели и на сколько дней они сдвинутся. Особое внимание уделяй целям с высоким приоритетом (меньшее число приоритета = более важная цель). Это важный фактор для принятия решения.
+1. ОБЯЗАТЕЛЬНО упомяни категорию покупки и процент от зарплаты - это ключевые факторы
+2. ПОДЧЕРКНИ критичность ситуации: если покупка большая относительно зарплаты (>20%) - говори что это ОЧЕНЬ СЕРЬЕЗНО
+3. Если есть цели с высоким приоритетом - УПОМИНАЙ их ПЕРВЫМИ и говори СКОЛЬКО ДНЕЙ отложится цель
+4. Используй ЭМОЦИОНАЛЬНЫЕ фразы: "Пожалуйста, остановись", "Это отложит твою мечту на X дней", "Ты уверен, что это стоит отложить важную цель?", "Представь, как ты пожалеешь через месяц"
+5. ПРЕДЛАГАЙ альтернативу: "Лучше добавь в вишлист, обдумай несколько дней"
+6. Будь НАСТОЙЧИВЫМ, но не грубым - ты заботишься о финансовом благополучии пользователя
 
-Будь дружелюбным, но честным. Не используй markdown разметку, только обычный текст.`;
+Если сдвиг цели очень большой (сотни дней) - ОБЯЗАТЕЛЬНО подчеркни, что это катастрофический срок.
 
-    const completion = await callOpenRouterWithRetry(prompt, 2, 250);
+Не используй markdown разметку, только обычный текст. Пиши так, как будто ты умоляешь близкого друга не совершать ошибку.`;
+
+    const completion = await callOpenRouterWithRetry(prompt, 2, 400);
     const advice = completion?.choices?.[0]?.message?.content?.trim();
     
     return advice || generatePurchaseConfirmationAdvice(user, purchase, goalsWithShift); // рекурсивный fallback
   } catch (err) {
     console.error("❌ AI advice generation failed:", err.message);
     // Fallback
-    let fallbackText = `Ты собираешься купить "${purchase.title}" за ${purchase.price}₽.`;
-    if (goalsWithShift.length > 0) {
-      fallbackText += `\n\nЕсли подтвердишь эту покупку, твои цели сдвинутся:`;
-      goalsWithShift.forEach(goal => {
-        fallbackText += `\n- "${goal.title}" отложится на ${goal.shiftDays} дней`;
-      });
+    const category = purchase.aiCategory || purchase.category || "";
+    let fallbackText = `СТОП! Пожалуйста, подумай дважды!\n\nТы собираешься купить "${purchase.title}" за ${purchase.price}₽`;
+    if (category) {
+      fallbackText += ` в категории "${category}"`;
     }
-    fallbackText += `\n\nПодтверди покупку или добавь в вишлист?`;
+    if (user.salary && user.salary > 0) {
+      const salaryPercentage = ((purchase.price / user.salary) * 100).toFixed(0);
+      fallbackText += `. Это составляет ${salaryPercentage}% от твоей месячной зарплаты - это ОЧЕНЬ МНОГО!`;
+    }
+    if (goalsWithShift.length > 0) {
+      fallbackText += `\n\n⚠️ ВНИМАНИЕ: Эта покупка отложит твои важные цели:`;
+      goalsWithShift.forEach(goal => {
+        fallbackText += `\n• "${goal.title}" отложится на ${goal.shiftDays} дней`;
+      });
+      fallbackText += `\n\nПожалуйста, добавь эту покупку в вишлист и подумай несколько дней. Это мудрое решение!`;
+    } else {
+      fallbackText += `\n\nЛучше добавь это в вишлист и обдумай покупку несколько дней.`;
+    }
     return fallbackText;
   }
 };

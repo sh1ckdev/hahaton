@@ -3,6 +3,7 @@ import { UserStore } from "./userStore.js";
 import { PurchaseStore } from "./purchaseStore.js";
 import { UIStore } from "./uiStore.js";
 import { GoalStore } from "./goalStore.js";
+import { NotificationStore } from "./notificationStore.js";
 
 class RootStore {
   constructor() {
@@ -10,6 +11,7 @@ class RootStore {
     this.purchaseStore = new PurchaseStore(this);
     this.uiStore = new UIStore(this);
     this.goalStore = new GoalStore(this);
+    this.notificationStore = new NotificationStore(this);
   }
 }
 

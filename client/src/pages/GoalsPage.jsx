@@ -1,8 +1,9 @@
 import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiTarget, FiPlus, FiEdit, FiCheck, FiX, FiTrash2 } from "react-icons/fi";
+import { FiArrowLeft, FiTarget, FiPlus, FiEdit, FiCheck, FiX, FiTrash2, FiClock } from "react-icons/fi";
+import api from "../api/client";
 
 const GoalsPage = observer(() => {
   const { userStore, goalStore } = useStores();
@@ -10,6 +11,19 @@ const GoalsPage = observer(() => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState(null);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [activeTab, setActiveTab] = useState("goals"); // "goals" or "cooldown"
+  const [cooldownRules, setCooldownRules] = useState([]);
+  const [loadingRules, setLoadingRules] = useState(false);
+
+  const loadCooldownRules = useCallback(async () => {
+    if (!userStore.userId) return;
+    try {
+      const res = await api.get(`/users/${userStore.userId}/cooldown-rules`);
+      setCooldownRules(res.data || []);
+    } catch (error) {
+      console.error("Ошибка загрузки правил охлаждения:", error);
+    }
+  }, [userStore.userId]);
 
   useEffect(() => {
     if (!userStore.user) {
@@ -18,8 +32,22 @@ const GoalsPage = observer(() => {
     }
     if (userStore.userId) {
       goalStore.loadForUser(userStore.userId, showCompleted);
+      loadCooldownRules();
     }
-  }, [userStore.user, userStore.userId, showCompleted]);
+  }, [userStore.user, userStore.userId, showCompleted, goalStore, loadCooldownRules, nav]);
+
+  const handleSaveCooldownRules = async () => {
+    setLoadingRules(true);
+    try {
+      await api.post(`/users/${userStore.userId}/cooldown-rules`, cooldownRules);
+      alert("Правила охлаждения успешно сохранены!");
+    } catch (error) {
+      console.error("Ошибка сохранения правил:", error);
+      alert("Ошибка при сохранении правил охлаждения");
+    } finally {
+      setLoadingRules(false);
+    }
+  };
 
   const handleAddGoal = async (goalData) => {
     try {
@@ -54,40 +82,73 @@ const GoalsPage = observer(() => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0D0D0D]">
-      <header className="px-4 py-3 border-b border-[#333333] bg-[#1A1A1A] flex items-center justify-between">
+      <header className="px-3 sm:px-4 py-3 border-b border-[#333333] bg-[#1A1A1A] flex items-center justify-between">
         <button
           onClick={() => nav(-1)}
-          className="flex items-center gap-2 text-sm text-white hover:text-[#FFDD2D] transition-colors"
+          className="flex items-center gap-1 sm:gap-2 text-sm text-white hover:text-[#FFDD2D] transition-colors flex-shrink-0"
         >
           <FiArrowLeft className="w-5 h-5" />
-          Назад
+          <span className="hidden sm:inline">Назад</span>
         </button>
-        <div className="flex items-center gap-2">
-          <FiTarget className="w-5 h-5 text-[#FFDD2D]" />
-          <span className="font-semibold text-white">Мои цели</span>
+        <div className="flex items-center gap-2 flex-1 justify-center">
+          <FiTarget className="w-5 h-5 text-[#FFDD2D] flex-shrink-0" />
+          <span className="font-semibold text-white text-sm sm:text-base">Мои цели</span>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 text-sm bg-[#FFDD2D] text-[#333333] px-4 py-2 rounded-lg font-semibold hover:bg-[#FFE855] transition-colors"
+          className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm bg-[#FFDD2D] text-[#333333] px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-[#FFE855] transition-colors flex-shrink-0"
         >
           <FiPlus className="w-4 h-4" />
-          Добавить
+          <span className="hidden sm:inline">Добавить</span>
+          <span className="sm:hidden">+</span>
         </button>
       </header>
 
-      <main className="flex-1 px-4 py-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Финансовые цели</h2>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={showCompleted}
-              onChange={(e) => setShowCompleted(e.target.checked)}
-              className="rounded"
-            />
-            <span className="text-white/70">Показать выполненные</span>
-          </label>
+      <main className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4">
+        {/* Tabs */}
+        <div className="flex gap-1 sm:gap-2 border-b border-[#333333] overflow-x-auto">
+          <button
+            onClick={() => setActiveTab("goals")}
+            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${
+              activeTab === "goals"
+                ? "border-[#FFDD2D] text-[#FFDD2D]"
+                : "border-transparent text-white/60 hover:text-white"
+            }`}
+          >
+            <div className="flex items-center gap-1 sm:gap-2">
+              <FiTarget className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Финансовые цели</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("cooldown")}
+            className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 whitespace-nowrap flex-shrink-0 ${
+              activeTab === "cooldown"
+                ? "border-[#FFDD2D] text-[#FFDD2D]"
+                : "border-transparent text-white/60 hover:text-white"
+            }`}
+          >
+            <div className="flex items-center gap-1 sm:gap-2">
+              <FiClock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>Правила охлаждения</span>
+            </div>
+          </button>
         </div>
+
+        {activeTab === "goals" && (
+          <>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+              <h2 className="text-base sm:text-lg font-semibold text-white">Финансовые цели</h2>
+              <label className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showCompleted}
+                  onChange={(e) => setShowCompleted(e.target.checked)}
+                  className="rounded"
+                />
+                <span className="text-white/70">Показать выполненные</span>
+              </label>
+            </div>
 
         {goals.length === 0 ? (
           <div className="bg-[#333333] border border-[#555555] rounded-md p-8 text-center">
@@ -139,24 +200,24 @@ const GoalsPage = observer(() => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <button
                         onClick={() => setEditingGoal(goal)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
+                        className="flex items-center justify-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
                       >
                         <FiEdit className="w-4 h-4" />
                         Редактировать
                       </button>
                       <button
                         onClick={() => handleUpdateGoal(goal._id, { isCompleted: !goal.isCompleted })}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
+                        className="flex items-center justify-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
                       >
                         <FiCheck className="w-4 h-4" />
                         {goal.isCompleted ? "Вернуть" : "Выполнено"}
                       </button>
                       <button
                         onClick={() => handleDeleteGoal(goal._id)}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-400 rounded-md hover:bg-red-500/30 border border-red-500/30"
+                        className="flex items-center justify-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-400 rounded-md hover:bg-red-500/30 border border-red-500/30"
                       >
                         <FiTrash2 className="w-4 h-4" />
                         Удалить
@@ -167,6 +228,16 @@ const GoalsPage = observer(() => {
               </div>
             ))}
           </div>
+        )}
+        </>)}
+
+        {activeTab === "cooldown" && (
+          <CooldownRulesSection
+            rules={cooldownRules}
+            setRules={setCooldownRules}
+            onSave={handleSaveCooldownRules}
+            loading={loadingRules}
+          />
         )}
       </main>
 
@@ -231,7 +302,7 @@ const GoalEditForm = ({ goal, onSave, onCancel }) => {
         rows="3"
         className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
       />
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <button
           type="submit"
           className="px-4 py-2 bg-[#FFDD2D] text-[#333333] rounded-md font-semibold hover:bg-[#FFE855] transition-colors"
@@ -267,8 +338,8 @@ const GoalAddModal = ({ onSave, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#333333] border border-[#555555] rounded-md p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#333333] border border-[#555555] rounded-md p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-white">Добавить цель</h2>
           <button
@@ -317,10 +388,10 @@ const GoalAddModal = ({ onSave, onClose }) => {
             rows="3"
             className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
           />
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-black rounded-md font-semibold hover:bg-yellow-300"
+              className="flex-1 px-4 py-2 bg-[#FFDD2D] text-[#333333] rounded-md font-semibold hover:bg-[#FFE855] transition-colors"
             >
               Добавить
             </button>
@@ -334,6 +405,149 @@ const GoalAddModal = ({ onSave, onClose }) => {
           </div>
         </form>
       </div>
+    </div>
+  );
+};
+
+const CooldownRulesSection = ({ rules, setRules, onSave, loading }) => {
+  const addRule = () => {
+    const lastRule = rules[rules.length - 1];
+    const newMin = lastRule ? lastRule.maxAmount : 0;
+    setRules([
+      ...rules,
+      {
+        minAmount: newMin,
+        maxAmount: newMin + 10000,
+        days: 7
+      }
+    ]);
+  };
+
+  const updateRule = (index, field, value) => {
+    const updated = [...rules];
+    updated[index] = { ...updated[index], [field]: Number(value) || 0 };
+    setRules(updated);
+  };
+
+  const removeRule = (index) => {
+    if (rules.length <= 1) {
+      alert("Должно быть хотя бы одно правило");
+      return;
+    }
+    setRules(rules.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <div>
+          <h2 className="text-base sm:text-lg font-semibold text-white">Правила охлаждения</h2>
+          <p className="text-xs sm:text-sm text-white/60 mt-1">
+            Настройте периоды охлаждения в зависимости от суммы покупки
+          </p>
+        </div>
+        <button
+          onClick={addRule}
+          className="flex items-center gap-2 text-xs sm:text-sm bg-[#FFDD2D] text-[#333333] px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-[#FFE855] transition-colors whitespace-nowrap w-full sm:w-auto justify-center"
+        >
+          <FiPlus className="w-4 h-4" />
+          Добавить правило
+        </button>
+      </div>
+
+      {rules.length === 0 ? (
+        <div className="bg-[#333333] border border-[#555555] rounded-md p-8 text-center">
+          <p className="text-white/70 mb-4">Правила охлаждения не настроены</p>
+          <button
+            onClick={addRule}
+            className="px-4 py-2 bg-[#FFDD2D] text-[#333333] rounded-md font-semibold hover:bg-[#FFE855] transition-colors"
+          >
+            Добавить первое правило
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3">
+            {rules.map((rule, index) => (
+              <div
+                key={index}
+                className="bg-[#333333] border border-[#555555] rounded-md p-4"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 items-end">
+                  <div>
+                    <label className="block text-xs text-white/70 mb-1">
+                      От (₽)
+                    </label>
+                    <input
+                      type="number"
+                      value={rule.minAmount || 0}
+                      onChange={(e) => updateRule(index, "minAmount", e.target.value)}
+                      min="0"
+                      className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/70 mb-1">
+                      До (₽)
+                    </label>
+                    <input
+                      type="number"
+                      value={rule.maxAmount || 0}
+                      onChange={(e) => updateRule(index, "maxAmount", e.target.value)}
+                      min={rule.minAmount || 0}
+                      className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white text-sm"
+                    />
+                    {index === rules.length - 1 && (
+                      <p className="text-xs text-white/50 mt-1">
+                        (последний диапазон)
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/70 mb-1">
+                      Дней охлаждения
+                    </label>
+                    <input
+                      type="number"
+                      value={rule.days || 0}
+                      onChange={(e) => updateRule(index, "days", e.target.value)}
+                      min="1"
+                      className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => removeRule(index)}
+                      className="px-3 py-2 bg-red-500/20 text-red-400 rounded-md hover:bg-red-500/30 border border-red-500/30 transition-colors"
+                      title="Удалить правило"
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-white/60">
+                  Покупки от {rule.minAmount?.toLocaleString()} ₽ до {rule.maxAmount?.toLocaleString()} ₽ → период охлаждения {rule.days} {rule.days === 1 ? "день" : rule.days < 5 ? "дня" : "дней"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={onSave}
+            disabled={loading}
+            className="w-full px-4 py-3 bg-[#FFDD2D] text-[#333333] rounded-lg font-semibold hover:bg-[#FFE855] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-[#333333] border-t-transparent rounded-full animate-spin" />
+                Сохранение...
+              </>
+            ) : (
+              "Сохранить правила"
+            )}
+          </button>
+        </>
+      )}
     </div>
   );
 };

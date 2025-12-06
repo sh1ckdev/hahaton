@@ -1,11 +1,13 @@
 import { getUserProfile } from "../services/userService.js";
+import Purchase from "../models/Purchase.js";
 import {
   listPurchasesByUser,
   createPurchase,
   cancelPurchase,
   markPurchaseAsBought,
   getPurchaseById,
-  isPurchaseAllowedNow
+  isPurchaseAllowedNow,
+  updatePurchase
 } from "../services/purchaseService.js";
 
 export const listPurchases = async (req, res, next) => {
@@ -63,6 +65,17 @@ export const checkPurchaseAllowedController = async (req, res, next) => {
     next(e);
   }
 };
+export const updatePurchaseController = async (req, res, next) => {
+  try {
+    const { purchaseId } = req.params;
+    const purchase = await updatePurchase(purchaseId, req.body || {});
+    if (!purchase) return res.status(404).json({ error: "Purchase not found" });
+    res.json(purchase);
+  } catch (e) {
+    next(e);
+  }
+};
+
 export const updateNotificationController = async (req,res,next)=>{
   try{
     const { id } = req.params;

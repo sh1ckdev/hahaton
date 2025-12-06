@@ -17,8 +17,8 @@ const purchaseSchema = new mongoose.Schema({
   blacklistMatched: { type: Boolean, default:false },
   blockedByCategory: { type: Boolean, default:false },
 
-  notifyEnabled: { type: Boolean, default:false },
-  notifyEveryDays: { type:Number, default:7 },
+  notifyEnabled: { type: Boolean, default: null }, // null = использовать глобальные настройки, false = отключить, true = включить с индивидуальными настройками
+  notifyEveryDays: { type: Number, default: null }, // null = использовать глобальные настройки, иначе индивидуальный интервал в днях
   lastNotifiedAt:{type:Date, default:null},
 },{
   timestamps:true

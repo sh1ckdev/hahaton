@@ -34,16 +34,31 @@ export class PurchaseStore {
 
   async toggleWishlistNotification(purchaseId, enabled, intervalDays) {
     try {
-      const res = await api.patch(`/purchases/notification/${purchaseId}`, {
+      // enabled может быть: null (глобальные настройки), true (включить), false (отключить)
+      const payload = {
         notifyEnabled: enabled,
-        notifyEveryDays: intervalDays
-      });
+        notifyEveryDays: intervalDays || null // если intervalDays не задан, то null
+      };
+      
+      const res = await api.patch(`/purchases/notification/${purchaseId}`, payload);
       runInAction(() => {
         this.purchases = this.purchases.map(p =>
           p._id === purchaseId ? res.data : p
         );
       });
-    } catch (e) { console.error(e); }
+      
+      // Перезагружаем профиль пользователя для синхронизации глобальных настроек с вишлистом
+      if (this.root.userStore.userId) {
+        await this.root.userStore.loadProfile();
+      }
+      
+      // Перезагружаем уведомления после изменения настроек
+      if (this.root.userStore.userId && this.root.notificationStore) {
+        await this.root.notificationStore.loadForUser(this.root.userStore.userId);
+      }
+    } catch (e) { 
+      console.error("Failed to toggle notification:", e); 
+    }
   }
 
   // Подтвердить покупку (пометить как купленную)
@@ -81,6 +96,26 @@ export class PurchaseStore {
       }
     } catch (e) {
       console.error("Failed to add to wishlist:", e);
+      throw e;
+    }
+  }
+
+  // Обновить покупку
+  async updatePurchase(purchaseId, purchaseData) {
+    try {
+      const res = await api.patch(`/purchases/${purchaseId}`, purchaseData);
+      runInAction(() => {
+        this.purchases = this.purchases.map(p =>
+          p._id === purchaseId ? res.data : p
+        );
+      });
+      // Перезагружаем список для полной синхронизации
+      if (this.root.userStore.userId) {
+        await this.loadForUser(this.root.userStore.userId);
+      }
+      return res.data;
+    } catch (e) {
+      console.error("Failed to update purchase:", e);
       throw e;
     }
   }
