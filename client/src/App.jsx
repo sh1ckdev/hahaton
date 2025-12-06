@@ -27,7 +27,7 @@ const App = observer(() => {
 
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-[#0D0D0D] text-white font-sans">
       <div className="mx-auto max-w-6xl px-3 sm:px-4 lg:px-6">
         <Routes>
           <Route path="/login" element={<LoginPage />} />

@@ -130,10 +130,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 1:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               На что ты тратишь больше всего денег?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               Выбери все подходящие категории (можно несколько)
             </p>
             <div className="flex flex-wrap gap-2">
@@ -141,10 +141,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
                 <button
                   key={cat}
                   onClick={() => toggleCategory(cat, setTopSpending, topSpending)}
-                  className={`px-3 py-2 rounded-full text-sm border transition ${
+                  className={`px-3 py-2 rounded-lg text-sm border transition ${
                     topSpending.includes(cat)
-                      ? "bg-yellow-400 text-black border-yellow-400"
-                      : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
+                      ? "bg-[#FFDD2D] text-[#333333] border-[#FFDD2D]"
+                      : "bg-[#1A1A1A] text-white border-[#555555] hover:bg-[#444444]"
                   }`}
                 >
                   {cat}
@@ -157,10 +157,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 2:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               Какие категории трат ты считаешь импульсивными?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               Покупки, о которых потом жалеешь
             </p>
             <div className="flex flex-wrap gap-2">
@@ -168,10 +168,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
                 <button
                   key={cat}
                   onClick={() => toggleCategory(cat, setImpulsiveCategories, impulsiveCategories)}
-                  className={`px-3 py-2 rounded-full text-sm border transition ${
+                  className={`px-3 py-2 rounded-lg text-sm border transition ${
                     impulsiveCategories.includes(cat)
-                      ? "bg-yellow-400 text-black border-yellow-400"
-                      : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
+                      ? "bg-[#FFDD2D] text-[#333333] border-[#FFDD2D]"
+                      : "bg-[#1A1A1A] text-white border-[#555555] hover:bg-[#444444]"
                   }`}
                 >
                   {cat}
@@ -184,17 +184,17 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 3:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               Есть ли у тебя финансовые цели?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               Например: "Купить машину через год", "Накопить на отпуск"
             </p>
             <textarea
               value={financialGoals}
               onChange={(e) => setFinancialGoals(e.target.value)}
               placeholder="Опиши свои финансовые цели..."
-              className="w-full bg-[#1d1f24] border border-[#31343a] px-4 py-3 rounded-xl text-white min-h-[100px] focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full bg-[#1A1A1A] border border-[#555555] px-4 py-3 rounded-lg text-white min-h-[100px] focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
             />
           </div>
         );
@@ -202,10 +202,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 4:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               Какие траты мешают достижению целей?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               Выбери категории, которые отвлекают от целей
             </p>
             <div className="flex flex-wrap gap-2">
@@ -213,10 +213,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
                 <button
                   key={cat}
                   onClick={() => toggleCategory(cat, setBlockingCategories, blockingCategories)}
-                  className={`px-3 py-2 rounded-full text-sm border transition ${
+                  className={`px-3 py-2 rounded-lg text-sm border transition ${
                     blockingCategories.includes(cat)
-                      ? "bg-yellow-400 text-black border-yellow-400"
-                      : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
+                      ? "bg-[#FFDD2D] text-[#333333] border-[#FFDD2D]"
+                      : "bg-[#1A1A1A] text-white border-[#555555] hover:bg-[#444444]"
                   }`}
                 >
                   {cat}
@@ -229,10 +229,10 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 5:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               Какой процент дохода ты хочешь откладывать?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               {savingsPercentage}% от зарплаты
             </p>
             <input
@@ -243,7 +243,7 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
               onChange={(e) => setSavingsPercentage(Number(e.target.value))}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-white/60">
               <span>0%</span>
               <span>25%</span>
               <span>50%</span>
@@ -254,16 +254,16 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
       case 6:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-white">
               Есть ли у тебя кредиты или долги?
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-white/70 mb-4">
               Это поможет точнее определить категории для ограничения
             </p>
             <div className="flex gap-4">
               <button
                 onClick={() => setHasDebts(true)}
-                className={`flex-1 px-4 py-3 rounded-xl border transition ${
+                className={`flex-1 px-4 py-3 rounded-lg border transition ${
                   hasDebts
                     ? "bg-yellow-400 text-black border-yellow-400"
                     : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
@@ -273,7 +273,7 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
               </button>
               <button
                 onClick={() => setHasDebts(false)}
-                className={`flex-1 px-4 py-3 rounded-xl border transition ${
+                className={`flex-1 px-4 py-3 rounded-lg border transition ${
                   !hasDebts
                     ? "bg-yellow-400 text-black border-yellow-400"
                     : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
@@ -292,19 +292,19 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#16181d] border border-[#26292f] rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-[#333333] border border-[#555555] rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl font-semibold text-white">
               Расширенная анкета
             </h2>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-white/70">
               Шаг {currentStep} из {totalSteps}
             </span>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-[#1A1A1A] rounded-lg h-2">
             <div
-              className="bg-yellow-400 h-2 rounded-full transition-all"
+              className="bg-[#FFDD2D] h-2 rounded-lg transition-all"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
           </div>
@@ -318,14 +318,14 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
           <button
             onClick={handleBack}
             disabled={currentStep === 1}
-            className="px-4 py-2 rounded-xl text-sm bg-[#1f2126] text-gray-300 hover:bg-[#2a2d33] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg text-sm bg-[#1A1A1A] text-white/80 hover:bg-[#444444] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             ← Назад
           </button>
           {currentStep < totalSteps ? (
             <button
               onClick={handleNext}
-              className="px-4 py-2 rounded-xl text-sm bg-yellow-400 text-black font-semibold hover:bg-yellow-300"
+              className="px-4 py-2 rounded-lg text-sm bg-[#FFDD2D] text-[#333333] font-semibold hover:bg-[#FFE855] transition-colors"
             >
               Далее →
             </button>
@@ -333,7 +333,7 @@ const ExtendedProfileModal = observer(({ onComplete }) => {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="px-4 py-2 rounded-xl text-sm bg-yellow-400 text-black font-semibold hover:bg-yellow-300 disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-sm bg-[#FFDD2D] text-[#333333] font-semibold hover:bg-[#FFE855] disabled:opacity-50 transition-colors"
             >
               {loading ? "Сохранение..." : "Завершить"}
             </button>

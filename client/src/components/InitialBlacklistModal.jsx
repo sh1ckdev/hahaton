@@ -72,24 +72,24 @@ const InitialBlacklistModal = observer(() => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#16181d] border border-[#26292f] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="bg-[#333333] border border-[#555555] rounded-lg p-6 max-w-md w-full shadow-2xl">
 
         <h2 className="text-xl font-semibold mb-2 text-white">
           Первый шаг — сформируем твой Blacklist
         </h2>
-        <p className="text-sm text-gray-400 mb-4">
+        <p className="text-sm text-white/70 mb-4">
           Выбери категории, на которые ты хочешь тратить меньше.
           Я буду напоминать тебе о целях и охлаждать импульсивные решения 💛
         </p>
 
         {loading && (
-          <div className="text-center text-gray-400 py-6">
+          <div className="text-center text-white/60 py-6">
             🤖 Генерирую категории через AI...
           </div>
         )}
 
         {!loading && (
-          <div className="flex flex-wrap gap-2 mb-5">
+          <div className="flex flex-wrap gap-2 mb-5 max-h-[50vh] overflow-y-auto">
             {categories.map((cat) => {
               const active = selected.includes(cat);
               return (
@@ -97,10 +97,10 @@ const InitialBlacklistModal = observer(() => {
                   key={cat}
                   onClick={() => toggle(cat)}
                   className={
-                    `px-3 py-1 rounded-full text-sm border transition ` +
+                    `px-3 py-1.5 rounded-lg text-sm border transition ` +
                     (active
-                      ? "bg-yellow-400 text-black border-yellow-400"
-                      : "bg-[#1d1f24] text-gray-200 border-[#31343a] hover:bg-[#2a2d33]"
+                      ? "bg-[#FFDD2D] text-[#333333] border-[#FFDD2D] font-medium"
+                      : "bg-[#1A1A1A] text-white border-[#555555] hover:bg-[#444444]"
                     )
                   }
                 >
@@ -114,14 +114,14 @@ const InitialBlacklistModal = observer(() => {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => uiStore.closeInitialBlacklistModal()}
-            className="px-3 py-1 rounded-xl text-sm bg-[#1f2126] text-gray-300 hover:bg-[#2a2d33]"
+            className="px-3 py-1 rounded-lg text-sm bg-[#1A1A1A] text-white/80 hover:bg-[#444444] transition-colors"
           >
             Потом
           </button>
           <button
             onClick={save}
             disabled={loading}
-            className="px-4 py-1 rounded-xl text-sm bg-yellow-400 text-black font-semibold hover:bg-yellow-300 disabled:opacity-50"
+            className="px-4 py-1 rounded-lg text-sm bg-[#FFDD2D] text-[#333333] font-semibold hover:bg-[#FFE855] disabled:opacity-50 transition-colors"
           >
             Сохранить
           </button>

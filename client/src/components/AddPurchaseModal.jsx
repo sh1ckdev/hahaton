@@ -2,17 +2,9 @@ import { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
 import api from "../api/client";
+import { PURCHASE_CATEGORIES } from "../utils/categories.js";
 
-const CATEGORIES = [
-  "игры",
-  "техника",
-  "одежда",
-  "развлечения",
-  "путешествия",
-  "еда",
-  "транспорт",
-  "другое"
-];
+const CATEGORIES = PURCHASE_CATEGORIES;
 
 const AddPurchaseModal = observer(({ onClose }) => {
   const { userStore, purchaseStore } = useStores();
@@ -108,18 +100,18 @@ const AddPurchaseModal = observer(({ onClose }) => {
   if (showAdvice && createdPurchase) {
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-96 max-w-[90vw] space-y-4">
-          <h2 className="font-semibold text-lg">Совет ассистента</h2>
+        <div className="bg-[#333333] border border-[#555555] p-5 rounded-lg w-96 max-w-[90vw] space-y-4">
+          <h2 className="font-semibold text-lg text-white">Совет ассистента</h2>
           
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-            <p className="text-sm text-slate-200 whitespace-pre-wrap">{advice}</p>
+          <div className="bg-[#1A1A1A] border border-[#555555] rounded-lg p-4">
+            <p className="text-sm text-white/90 whitespace-pre-wrap">{advice}</p>
           </div>
 
           {createdPurchase.blockedByCategory ? (
             <div className="flex gap-2">
               <button 
                 onClick={handleCancel}
-                className="flex-1 bg-red-500 text-white py-2 rounded-xl font-semibold hover:bg-red-600"
+                className="flex-1 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors"
               >
                 Понятно
               </button>
@@ -128,19 +120,19 @@ const AddPurchaseModal = observer(({ onClose }) => {
             <div className="flex gap-2">
               <button 
                 onClick={handleAddToWishlist}
-                className="flex-1 bg-primary text-black py-2 rounded-xl font-semibold hover:bg-yellow-300"
+                className="flex-1 bg-[#FFDD2D] text-[#333333] py-2 rounded-lg font-semibold hover:bg-[#FFE855] transition-colors"
               >
                 Добавить в вишлист
               </button>
               <button 
                 onClick={handleConfirmPurchase}
-                className="flex-1 bg-green-500 text-white py-2 rounded-xl font-semibold hover:bg-green-600"
+                className="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors"
               >
                 Всё равно купить
               </button>
               <button 
                 onClick={handleCancel}
-                className="flex-1 bg-slate-700 text-white py-2 rounded-xl font-semibold hover:bg-slate-600"
+                className="flex-1 bg-[#1A1A1A] text-white border border-[#555555] py-2 rounded-lg font-semibold hover:bg-[#444444] transition-colors"
               >
                 Отменить
               </button>
@@ -153,30 +145,30 @@ const AddPurchaseModal = observer(({ onClose }) => {
 
   return(
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl w-80 space-y-3">
-        <h2 className="font-semibold text-lg">Новая покупка</h2>
+      <div className="bg-[#333333] border border-[#555555] p-5 rounded-lg w-80 space-y-3">
+        <h2 className="font-semibold text-lg text-white">Новая покупка</h2>
         <input 
-          className="bg-slate-800 border border-slate-700 w-full px-3 py-2 rounded-xl text-white" 
+          className="bg-[#1A1A1A] border border-[#555555] w-full px-3 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]" 
           placeholder="Название товара" 
           value={title} 
           onChange={e=>setTitle(e.target.value)}
         />
         <input 
-          className="bg-slate-800 border border-slate-700 w-full px-3 py-2 rounded-xl text-white" 
+          className="bg-[#1A1A1A] border border-[#555555] w-full px-3 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]" 
           type="number" 
           placeholder="Цена (₽)" 
           value={price} 
           onChange={e=>setPrice(e.target.value)}
         />
         <input 
-          className="bg-slate-800 border border-slate-700 w-full px-3 py-2 rounded-xl text-white" 
+          className="bg-[#1A1A1A] border border-[#555555] w-full px-3 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]" 
           type="url" 
           placeholder="Ссылка на товар (опционально)" 
           value={url} 
           onChange={e=>setUrl(e.target.value)}
         />
         <select
-          className="bg-slate-800 border border-slate-700 w-full px-3 py-2 rounded-xl text-white"
+          className="bg-[#1A1A1A] border border-[#555555] w-full px-3 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FFDD2D]"
           value={category}
           onChange={e=>setCategory(e.target.value)}
         >
@@ -185,18 +177,18 @@ const AddPurchaseModal = observer(({ onClose }) => {
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
-        <label className="flex gap-2 text-sm text-slate-300">
+        <label className="flex gap-2 text-sm text-white/80">
           <input type="checkbox" checked={ai} onChange={e=>setAi(e.target.checked)}/> 
           Использовать AI для категории (если не выбрана)
         </label>
         <button 
           onClick={submit} 
           disabled={loading}
-          className="w-full bg-primary text-black py-2 rounded-xl font-semibold disabled:opacity-50"
+          className="w-full bg-[#FFDD2D] text-[#333333] py-2 rounded-lg font-semibold hover:bg-[#FFE855] disabled:opacity-50 transition-colors"
         >
           {loading ? "Добавление..." : "Добавить"}
         </button>
-        <button onClick={onClose} className="w-full text-slate-400 text-sm">Отмена</button>
+        <button onClick={onClose} className="w-full text-white/60 text-sm hover:text-white transition-colors">Отмена</button>
       </div>
     </div>
   );

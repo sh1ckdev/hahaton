@@ -92,22 +92,22 @@ const NotificationSettingsPage = observer(() => {
   const plannedPurchases = purchaseStore.purchases.filter(p => p.status === "planned");
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-4 py-3 border-b border-slate-800 bg-slate-950/80 backdrop-blur flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-[#0D0D0D]">
+      <header className="px-4 py-3 border-b border-[#333333] bg-[#1A1A1A] flex items-center justify-between">
         <button
           onClick={() => nav(-1)}
-          className="text-sm text-slate-400 hover:text-slate-200"
+          className="text-sm text-white hover:text-[#FFDD2D] transition-colors"
         >
           ← Назад
         </button>
-        <div className="font-semibold">Настройки уведомлений</div>
+        <div className="font-semibold text-white">Настройки уведомлений</div>
         <div className="w-10" />
       </header>
 
       <main className="flex-1 px-4 py-6 space-y-6">
         {/* Частота опроса */}
         <section>
-          <h3 className="text-lg font-semibold mb-3">Частота опроса о покупках</h3>
+          <h3 className="text-lg font-semibold mb-3 text-white">Частота опроса о покупках</h3>
           <div className="space-y-2">
             {[
               { value: "daily", label: "Ежедневно" },
@@ -123,7 +123,7 @@ const NotificationSettingsPage = observer(() => {
                   onChange={(e) => setFrequency(e.target.value)}
                   className="w-4 h-4"
                 />
-                <span>{opt.label}</span>
+                <span className="text-white">{opt.label}</span>
               </label>
             ))}
           </div>
@@ -131,7 +131,7 @@ const NotificationSettingsPage = observer(() => {
 
         {/* Каналы нотификации */}
         <section>
-          <h3 className="text-lg font-semibold mb-3">Каналы уведомлений</h3>
+          <h3 className="text-lg font-semibold mb-3 text-white">Каналы уведомлений</h3>
           <div className="space-y-2">
             {[
               { value: "ui", label: "Уведомления в приложении" },
@@ -145,7 +145,7 @@ const NotificationSettingsPage = observer(() => {
                   onChange={() => toggleChannel(opt.value)}
                   className="w-4 h-4"
                 />
-                <span>{opt.label}</span>
+                <span className="text-white">{opt.label}</span>
               </label>
             ))}
           </div>
@@ -153,8 +153,8 @@ const NotificationSettingsPage = observer(() => {
 
         {/* Настройки Email */}
         {channels.includes("email") && (
-          <section className="bg-slate-800/50 p-4 rounded-xl">
-            <h3 className="text-lg font-semibold mb-3">Настройки Email</h3>
+          <section className="bg-[#333333] p-4 rounded-md border border-[#555555]">
+            <h3 className="text-lg font-semibold mb-3 text-white">Настройки Email</h3>
             <div className="space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -163,7 +163,7 @@ const NotificationSettingsPage = observer(() => {
                   onChange={(e) => setEmailEnabled(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span>Включить уведомления на Email</span>
+                <span className="text-white">Включить уведомления на Email</span>
               </label>
               {emailEnabled && (
                 <input
@@ -171,7 +171,7 @@ const NotificationSettingsPage = observer(() => {
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 px-3 py-2 rounded-xl text-white"
+                  className="w-full bg-[#1A1A1A] border border-[#555555] px-3 py-2 rounded-md text-white"
                 />
               )}
             </div>
@@ -180,8 +180,8 @@ const NotificationSettingsPage = observer(() => {
 
         {/* Настройки Telegram */}
         {channels.includes("telegram") && (
-          <section className="bg-slate-800/50 p-4 rounded-xl">
-            <h3 className="text-lg font-semibold mb-3">Настройки Telegram</h3>
+          <section className="bg-[#333333] p-4 rounded-md border border-[#555555]">
+            <h3 className="text-lg font-semibold mb-3 text-white">Настройки Telegram</h3>
             <div className="space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -190,7 +190,7 @@ const NotificationSettingsPage = observer(() => {
                   onChange={(e) => setTelegramEnabled(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span>Включить уведомления в Telegram</span>
+                <span className="text-white">Включить уведомления в Telegram</span>
               </label>
               {telegramEnabled && (
                 <input
@@ -198,7 +198,7 @@ const NotificationSettingsPage = observer(() => {
                   placeholder="Chat ID или username"
                   value={telegramChatId}
                   onChange={(e) => setTelegramChatId(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 px-3 py-2 rounded-xl text-white"
+                  className="w-full bg-[#1A1A1A] border border-[#555555] px-3 py-2 rounded-md text-white"
                 />
               )}
             </div>
@@ -207,18 +207,18 @@ const NotificationSettingsPage = observer(() => {
 
         {/* Исключения товаров */}
         <section>
-          <h3 className="text-lg font-semibold mb-3">Исключить товары из уведомлений</h3>
-          <p className="text-sm text-slate-400 mb-3">
+          <h3 className="text-lg font-semibold mb-3 text-white">Исключить товары из уведомлений</h3>
+          <p className="text-sm text-white/70 mb-3">
             Выберите товары, о которых не нужно напоминать
           </p>
           {plannedPurchases.length === 0 ? (
-            <p className="text-slate-500 text-sm">Нет запланированных покупок</p>
+            <p className="text-white/60 text-sm">Нет запланированных покупок</p>
           ) : (
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {plannedPurchases.map(purchase => (
                 <label
                   key={purchase._id}
-                  className="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-800/50 rounded"
+                  className="flex items-center gap-2 cursor-pointer p-2 hover:bg-[#333333] rounded border border-[#555555] bg-[#1A1A1A]"
                 >
                   <input
                     type="checkbox"
@@ -226,7 +226,7 @@ const NotificationSettingsPage = observer(() => {
                     onChange={() => toggleExcludePurchase(purchase._id)}
                     className="w-4 h-4"
                   />
-                  <span className="flex-1">
+                  <span className="flex-1 text-white">
                     {purchase.title} - {purchase.price}₽
                   </span>
                 </label>
@@ -238,7 +238,7 @@ const NotificationSettingsPage = observer(() => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="w-full px-4 py-3 rounded-xl bg-primary text-black font-semibold hover:bg-primary-dark disabled:opacity-50"
+          className="w-full px-4 py-3 rounded-md bg-[#FFDD2D] text-[#333333] font-semibold hover:bg-[#FFE855] disabled:opacity-50 transition-colors"
         >
           {loading ? "Сохранение..." : "Сохранить настройки"}
         </button>

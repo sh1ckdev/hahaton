@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useStores } from "../stores/StoreProvider.jsx";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiTarget, FiPlus, FiEdit, FiCheck, FiX, FiTrash2 } from "react-icons/fi";
 
 const GoalsPage = observer(() => {
   const { userStore, goalStore } = useStores();
@@ -52,26 +53,31 @@ const GoalsPage = observer(() => {
   const goals = showCompleted ? goalStore.goals : goalStore.activeGoals;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="px-4 py-3 border-b border-slate-800 bg-slate-950/80 backdrop-blur flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-[#0D0D0D]">
+      <header className="px-4 py-3 border-b border-[#333333] bg-[#1A1A1A] flex items-center justify-between">
         <button
           onClick={() => nav(-1)}
-          className="text-sm text-slate-400 hover:text-slate-200"
+          className="flex items-center gap-2 text-sm text-white hover:text-[#FFDD2D] transition-colors"
         >
-          ← Назад
+          <FiArrowLeft className="w-5 h-5" />
+          Назад
         </button>
-        <div className="font-semibold">Мои цели</div>
+        <div className="flex items-center gap-2">
+          <FiTarget className="w-5 h-5 text-[#FFDD2D]" />
+          <span className="font-semibold text-white">Мои цели</span>
+        </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="text-sm bg-primary text-black px-3 py-1 rounded-full font-semibold hover:bg-yellow-300"
+          className="flex items-center gap-2 text-sm bg-[#FFDD2D] text-[#333333] px-4 py-2 rounded-lg font-semibold hover:bg-[#FFE855] transition-colors"
         >
-          + Добавить
+          <FiPlus className="w-4 h-4" />
+          Добавить
         </button>
       </header>
 
       <main className="flex-1 px-4 py-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Финансовые цели</h2>
+          <h2 className="text-lg font-semibold text-white">Финансовые цели</h2>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -79,16 +85,16 @@ const GoalsPage = observer(() => {
               onChange={(e) => setShowCompleted(e.target.checked)}
               className="rounded"
             />
-            <span className="text-slate-400">Показать выполненные</span>
+            <span className="text-white/70">Показать выполненные</span>
           </label>
         </div>
 
         {goals.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <p className="text-slate-400 mb-4">Пока нет целей</p>
+          <div className="bg-[#333333] border border-[#555555] rounded-md p-8 text-center">
+            <p className="text-white/70 mb-4">Пока нет целей</p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-primary text-black rounded-lg font-semibold hover:bg-yellow-300"
+              className="px-4 py-2 bg-[#FFDD2D] text-[#333333] rounded-md font-semibold hover:bg-[#FFE855] transition-colors"
             >
               Добавить первую цель
             </button>
@@ -98,7 +104,7 @@ const GoalsPage = observer(() => {
             {goals.map((goal) => (
               <div
                 key={goal._id}
-                className={`bg-slate-900 border border-slate-800 rounded-xl p-4 ${
+                className={`bg-[#333333] border border-[#555555] rounded-md p-4 ${
                   goal.isCompleted ? "opacity-60" : ""
                 }`}
               >
@@ -120,15 +126,15 @@ const GoalsPage = observer(() => {
                             </span>
                           )}
                         </div>
-                        <div className="text-2xl font-bold text-primary mb-1">
+                        <div className="text-2xl font-bold text-[#FFDD2D] mb-1">
                           {goal.price.toLocaleString()} ₽
                         </div>
                         {goal.description && (
-                          <p className="text-sm text-slate-400 mt-2">{goal.description}</p>
+                          <p className="text-sm text-white/60 mt-2">{goal.description}</p>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-xs text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded mb-2">
+                        <div className="text-xs text-[#FFDD2D] bg-[#FFDD2D]/10 px-2 py-1 rounded mb-2 border border-[#FFDD2D]/20">
                           Приоритет {goal.priority}
                         </div>
                       </div>
@@ -136,20 +142,23 @@ const GoalsPage = observer(() => {
                     <div className="flex gap-2 mt-3">
                       <button
                         onClick={() => setEditingGoal(goal)}
-                        className="px-3 py-1 text-sm bg-slate-800 rounded-lg hover:bg-slate-700"
+                        className="flex items-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
                       >
+                        <FiEdit className="w-4 h-4" />
                         Редактировать
                       </button>
                       <button
                         onClick={() => handleUpdateGoal(goal._id, { isCompleted: !goal.isCompleted })}
-                        className="px-3 py-1 text-sm bg-slate-800 rounded-lg hover:bg-slate-700"
+                        className="flex items-center gap-2 px-3 py-2 text-sm bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors border border-[#555555]"
                       >
+                        <FiCheck className="w-4 h-4" />
                         {goal.isCompleted ? "Вернуть" : "Выполнено"}
                       </button>
                       <button
                         onClick={() => handleDeleteGoal(goal._id)}
-                        className="px-3 py-1 text-sm bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                        className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/20 text-red-400 rounded-md hover:bg-red-500/30 border border-red-500/30"
                       >
+                        <FiTrash2 className="w-4 h-4" />
                         Удалить
                       </button>
                     </div>
@@ -190,7 +199,7 @@ const GoalEditForm = ({ goal, onSave, onCancel }) => {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Название цели"
         required
-        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+        className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
       />
       <input
         type="number"
@@ -199,7 +208,7 @@ const GoalEditForm = ({ goal, onSave, onCancel }) => {
         placeholder="Сумма (₽)"
         required
         min="0"
-        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+        className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
       />
       <div>
         <label className="text-sm text-slate-400 mb-1 block">
@@ -212,7 +221,7 @@ const GoalEditForm = ({ goal, onSave, onCancel }) => {
           min="1"
           max="10"
           required
-          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+          className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
         />
       </div>
       <textarea
@@ -220,19 +229,19 @@ const GoalEditForm = ({ goal, onSave, onCancel }) => {
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Описание (необязательно)"
         rows="3"
-        className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+        className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
       />
       <div className="flex gap-2">
         <button
           type="submit"
-          className="px-4 py-2 bg-primary text-black rounded-lg font-semibold hover:bg-yellow-300"
+          className="px-4 py-2 bg-[#FFDD2D] text-[#333333] rounded-md font-semibold hover:bg-[#FFE855] transition-colors"
         >
           Сохранить
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700"
+          className="px-4 py-2 bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors"
         >
           Отмена
         </button>
@@ -259,12 +268,12 @@ const GoalAddModal = ({ onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full mx-4">
+      <div className="bg-[#333333] border border-[#555555] rounded-md p-6 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Добавить цель</h2>
+          <h2 className="text-xl font-semibold text-white">Добавить цель</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="text-white/60 hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -276,7 +285,7 @@ const GoalAddModal = ({ onSave, onClose }) => {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Название цели *"
             required
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+            className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
           />
           <input
             type="number"
@@ -285,7 +294,7 @@ const GoalAddModal = ({ onSave, onClose }) => {
             placeholder="Сумма (₽) *"
             required
             min="0"
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+            className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
           />
           <div>
             <label className="text-sm text-slate-400 mb-1 block">
@@ -298,7 +307,7 @@ const GoalAddModal = ({ onSave, onClose }) => {
               min="1"
               max="10"
               required
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+              className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
             />
           </div>
           <textarea
@@ -306,19 +315,19 @@ const GoalAddModal = ({ onSave, onClose }) => {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Описание (необязательно)"
             rows="3"
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+            className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#555555] rounded-md text-white"
           />
           <div className="flex gap-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-black rounded-lg font-semibold hover:bg-yellow-300"
+              className="flex-1 px-4 py-2 bg-primary text-black rounded-md font-semibold hover:bg-yellow-300"
             >
               Добавить
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700"
+              className="px-4 py-2 bg-[#1A1A1A] rounded-md hover:bg-[#444444] text-white transition-colors"
             >
               Отмена
             </button>

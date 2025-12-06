@@ -53,24 +53,24 @@ const FinancialProfileModal = observer(() => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#16181d] border border-[#26292f] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="bg-[#333333] border border-[#555555] rounded-lg p-6 max-w-md w-full shadow-2xl">
         <h2 className="text-xl font-semibold mb-2 text-white">
           Настройка финансового профиля
         </h2>
-        <p className="text-sm text-gray-400 mb-6">
+        <p className="text-sm text-white/70 mb-6">
           Для работы приложения необходимо указать базовую информацию о ваших финансах
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm mb-2 text-gray-300">
+            <label className="block text-sm mb-2 text-white/90">
               Зарплата в месяц (₽)
             </label>
             <input
               type="number"
               min="0"
               step="1000"
-              className="w-full rounded-xl bg-[#1d1f24] border border-[#31343a] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-white"
+              className="w-full rounded-lg bg-[#1A1A1A] border border-[#555555] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFDD2D] text-white"
               placeholder="50000"
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
@@ -79,20 +79,20 @@ const FinancialProfileModal = observer(() => {
           </div>
 
           <div>
-            <label className="block text-sm mb-2 text-gray-300">
+            <label className="block text-sm mb-2 text-white/90">
               Сколько откладываете в месяц (₽)
             </label>
             <input
               type="number"
               min="0"
               step="1000"
-              className="w-full rounded-xl bg-[#1d1f24] border border-[#31343a] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-white"
+              className="w-full rounded-lg bg-[#1A1A1A] border border-[#555555] px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFDD2D] text-white"
               placeholder="10000"
               value={savingsPerMonth}
               onChange={(e) => setSavingsPerMonth(e.target.value)}
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-white/60 mt-1">
               Сумма, которую вы планируете откладывать каждый месяц
             </p>
           </div>
@@ -101,7 +101,7 @@ const FinancialProfileModal = observer(() => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl text-sm bg-yellow-400 text-black font-semibold hover:bg-yellow-300 disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-sm bg-[#FFDD2D] text-[#333333] font-semibold hover:bg-[#FFE855] disabled:opacity-50 transition-colors"
             >
               {loading ? "Сохранение..." : "Сохранить"}
             </button>
