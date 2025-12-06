@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* ==== Т-БАНК СТИЛЬ ==== */
+@theme {
+  --color-primary: #FFD600;
+  --color-primary-dark: #E5C100;
+  --color-black: #111111;
+  --color-bg: #0D0D0D;
+  --color-gray-900: #1A1A1A;
+  --color-gray-700: #6B6B6B;
+  --color-gray-400: #A2A2A2;
+  --color-gray-200: #E6E6E6;
+  --color-white: #ffffff;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+/* Карточки — фирменная мягкая тень */
+.card-tinkoff {
+  @apply bg-gray-900 border border-gray-800 rounded-[20px] p-5 shadow-[0_0_40px_-20px_rgba(255,214,0,0.4)];
+}
+
+/* Акцентная кнопка */
+.btn-primary {
+  @apply bg-primary text-black font-semibold px-5 py-2 rounded-lg hover:bg-primary-dark transition;
+}
+
+/* Лёгкая кнопка */
+.btn-outline {
+  @apply border border-gray-700 text-gray-200 px-4 py-1.5 rounded-lg hover:bg-gray-800 transition;
+}
